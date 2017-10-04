@@ -80,6 +80,8 @@ declare class Player extends Entity{
   getAddress(): String
   getPort(): String
   getType(): String
+  setName(name: String): void
+  setSocket(socket: SocketIO.Socket): void
   setType(type: String): void
   sendMessage(sender: String, message: String, format?: String): void
   toObject(): {name: String, x: Number, y: Number, z: Number, yaw: Number, pitch: Number, velocity: THREE.Vector3, id: Number, worldName: String, type: String}
