@@ -26,7 +26,7 @@ declare class ParameterType{
   static NUMBER: 'number'
   static PLAYER: 'player'
   static BOOLEAN: 'boolean'
-  static toType(parameter: Object): String
+  static toType(parameter: Object): Array<ParameterType>
 }
 
 declare class CommandExecutor{
@@ -60,21 +60,25 @@ declare class ConsoleManager{
 declare class PlayerCommandSender extends CommandSender{
   constructor()
   sendMessage(message: String): void
+  getName(): String
+  getServer(): Server
   getPlayer(): Player
 }
 
 declare class Entity{
-  constructor(id: Number, location: Location_, velocity: THREE.Vector3)
+  constructor(id: Number, location: Location_, velocity: THREE.Vector3, health?: Number)
   getId(): Number
   getLocation(): Location_
   teleport(loc: Location_, update?: Boolean): void
+  getHealth(): Number
   getVelocity(): THREE.Vector3
   setVelocity(velocity: THREE.Vector3): void
+  setHealth(health: Number): void
   equals(object: Object): Boolean
 }
 
 declare class Player extends Entity{
-  constructor(id: Number, location: Location_, velocity: THREE.Vector3, name: String, socket: SocketIO.Socket, type: String)
+  constructor(id: Number, location: Location_, velocity: THREE.Vector3, health?: Number, name: String, socket: SocketIO.Socket, type: String, inventory?: Inventory, gamemode?: Number)
   getName(): String
   getSocket(): SocketIO.Socket
   getAddress(): String
@@ -84,7 +88,15 @@ declare class Player extends Entity{
   setSocket(socket: SocketIO.Socket): void
   setType(type: String): void
   sendMessage(sender: String, message: String, format?: String): void
+  getInventory(): Inventory
+  setHealth(health): void
+  openInventory(inventory: Inventory): void
+  getGameMode(): Number
+  setGameMode(gamemode: Number): void
+  getSelectedSlotId(): Number
+  setSelectedSlotId(selectedSlotId: Number): void
   toObject(): {name: String, x: Number, y: Number, z: Number, yaw: Number, pitch: Number, velocity: THREE.Vector3, id: Number, worldName: String, type: String}
+  static fromObject(object: Object, socket: SocketIO.Socket): Player
 }
 
 declare class BlockBreakEvent extends CancellableBlockEvent{
@@ -204,6 +216,45 @@ declare class EventPriority {
   static MONITOR: 0
 }
 
+declare class Inventory{
+  constructor(size: Number, contents?: Array<ItemStack>)
+  getContents(): Array<ItemStack>
+  getItem(count: Number): ItemStack
+  setItem(count: Number, item: ItemStack): void
+  addItem(item: ItemStack): Boolean
+  addItem(items: Array<ItemStack>): Boolean
+  removeItem(item: ItemStack): Boolean
+  removeItem(items: Array<ItemStack>): Boolean
+  toObject(): {size: Number, contents: Array<ItemStack>}
+  static fromObject(object: Object): Inventory
+}
+
+declare class ItemMeta{
+  constructor(lore?: Array<String>, displayName?: String)
+  getLore(): Array<String>
+  setLore(lore: Array<String>): void
+  getDisplayName(): String
+  setDisplayName(displayName: String): void
+  equals(itemMeta: ItemMeta): Boolean
+  toObject(): {lore: Array<String>, displayName: String}
+  static fromObject(object: Object): ItemMeta
+}
+
+declare class ItemStack{
+  constructor(type: Material, amount?: 1, data?: 0, itemMeta?: ItemMeta)
+  getType(): Material
+  setType(type: Material): void
+  getAmount(): Number
+  setAmount(amount: Number): void
+  getData(): Number
+  setData(data: Number): void
+  getItemMeta(): ItemMeta
+  setItemMeta(itemMeta: ItemMeta): void
+  equals(item: ItemStack): Boolean
+  toObject(): {type: Material, amount: Number, data: Number, itemMeta: ItemMeta}
+  static fromObject(object: Object): ItemStack
+}
+
 declare class ChatManager extends SocketManager{
   addListener(socket: SocketIO.Socket): void
   sendSystemMessage(message: String): void
@@ -213,7 +264,7 @@ declare class CommandManager extends SocketManager{
   constructor()
   init(): void
   addListener(socket: SocketIO.Socket): void
-  call(message: String): void
+  call(message): void
   getCommandProvider(): CommandProvider
   getCommandExecutor(): CommandExecutor
 }
@@ -234,7 +285,7 @@ declare class PlayerSkinManager extends SocketManager{
   addListener(socket: SocketIO.Socket): void
 }
 
-declare class SocketManager{
+declare class SocketConnectManager{
   init(): void
   getLoginManager(): LoginManager
   getMoveManager(): MoveManager
@@ -243,6 +294,10 @@ declare class SocketManager{
   getDisconnectManager(): DisconnectManager
   getChatManager(): ChatManager
   getCommandManager(): CommandManager
+}
+
+declare class SocketManager{
+  addListener(socket: SocketIO.Socket): void
 }
 
 declare class WorldManager extends SocketManager{
@@ -340,7 +395,7 @@ declare class Server{
   getPluginManager(): PluginManager
   getChatManager(): ChatManager
   getCommandManager(): CommandManager
-  getSocketManager(): SocketManager
+  getSocketConnectManager(): SocketConnectManager
   getLogger(): Logger
   getName(): 'server'
   static protocolVersion: 1
