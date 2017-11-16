@@ -1,0 +1,1 @@
+/// <reference path="./vokkit.d.ts" />
